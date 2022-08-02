@@ -1,0 +1,62 @@
+﻿@page "/client"
+
+@using Blazored.LocalStorage
+
+@inject IHttpClientFactory _clientFactory
+@inject IConfiguration _config
+@inject ILocalStorageService _localStorage
+
+<h3>Weather Data</h3>
+<button class="btn btn-primary" @onclick="LogIn">Log In</button>
+<button class="btn btn-primary m-4" @onclick="GetEmployee">GetEmployee</button>
+
+@if (string.IsNullOrEmpty(response) == false)
+{
+    <div class="h6">@response</div>
+}
+
+
+
+@code {
+    string response;
+    string token;
+    async Task LogIn()
+    {
+        var client = _clientFactory.CreateClient();
+
+        try
+        {
+            var data = new FormUrlEncodedContent(new[]
+            {
+                new KeyValuePair<string, string>("grant_type", "password"),
+                new KeyValuePair<string, string>("id", "23"),
+                new KeyValuePair<string, string>("password", "string")
+            });
+            var authResult = await client.PostAsync("https://localhost:7077/api/Company/Login", data);
+
+            response = await authResult.Content.ReadAsStringAsync();
+
+        }
+        catch (Exception ex)
+        {
+            response = $"Exception: { ex.Message }";
+        }
+    }
+
+    async Task GetEmployee()
+    {
+        try
+        {
+            var token = await _localStorage.GetItemAsync<string>(_config["authTokenStorageKey"]);
+            string requestLink = "https://localhost:7077/api/Company/AllEmployees";
+            var client = _clientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            response = await client.GetStringAsync(requestLink);
+        }
+        catch (Exception ex)
+        {
+            response = $"Exception: { ex.Message }";
+        }
+
+    }
+}

@@ -1,0 +1,49 @@
+﻿@page "/login_sm"
+@inject IAuthenticationService AuthService
+@inject NavigationManager NavManager
+
+
+<EditForm Model="@user" OnValidSubmit="ExecuteLogin">
+    <div class="row m-2">
+        <div class="col-auto">
+            <label for="id" class="visually-hidden">Id</label>
+            <InputText id="id" class="form-control" @bind-Value="user.Id" placeholder="Employee-ID" />
+        </div>
+
+        <div class="col-auto">
+            <label for="password" class="visually-hidden">Password</label>
+            <InputText id="password" type="password" class="form-control" @bind-Value="user.Password" placeholder="Password" />
+        </div>
+
+        <div class="col-auto">
+                <button type="submit" class="btn btn-success">Log In</button>
+        </div>
+    </div>
+
+
+</EditForm>
+
+@code {
+    private AuthenticationUserModel user = new();
+
+    private bool showAuthenticationError = false;
+    private string authenticationErrorText = "";
+
+    private async Task ExecuteLogin()
+    {
+        showAuthenticationError = false;
+
+        AuthenticatedUserModel result = await AuthService.Login(user);
+
+        if (result is not null)
+        {
+            NavManager.NavigateTo("/");
+        }
+        else
+        {
+            authenticationErrorText = "There was an error when trying to log in.";
+            showAuthenticationError = true;
+        }
+    }
+
+}
